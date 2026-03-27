@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 class Plant:
     """
     Represents a plant with a name, height and age.

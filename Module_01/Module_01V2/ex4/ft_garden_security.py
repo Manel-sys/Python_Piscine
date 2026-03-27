@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 class Plant:
     """
     Represents a plant with certain protected attributes
@@ -16,10 +18,14 @@ class Plant:
         self._growth_rate: float = growth_rate
         self._growth: float = 0
         if height < 0:
+            print(f"Tried to create {self.name}"
+                  f" with negative height - height set to default 0")
             self._height: float = 0
         else:
             self._height = height
         if age < 0:
+            print(f"Tried to create {self.name}"
+                  f" with negative age - age set to default 0")
             self._age: int = 0
         else:
             self._age = age
