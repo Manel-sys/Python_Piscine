@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 class Plant:
     def __init__(self, name: str, height: int):
         self.name: str = name

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 def garden_operations(oper_nbr: int) -> None:
     if oper_nbr == 0:
         nbr: int = int("abc")

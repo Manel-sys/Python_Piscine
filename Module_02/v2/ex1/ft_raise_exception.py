@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 def input_temperature(temp_str: str) -> int:
     try:
         nbr: int = int(temp_str)
