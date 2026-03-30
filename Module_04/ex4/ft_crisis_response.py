@@ -1,8 +1,7 @@
 def crisis_handler(file_name: str) -> None:
-    alert: dict[str, str] = {"routine": f"ROUTINE ACCESS: Attempting"
-                                        f" access to '{file_name}'...",
-                             "crisis": f"CRISIS ALERT: Attempting access to"
-                                       f" '{file_name}'...",
+    alert: dict[str, str] = {
+        "routine": f"ROUTINE ACCESS: Attempting access to '{file_name}'...",
+        "crisis": f"CRISIS ALERT: Attempting access to'{file_name}'...",
                              }
     try:
         with open(file_name, "r") as file:
