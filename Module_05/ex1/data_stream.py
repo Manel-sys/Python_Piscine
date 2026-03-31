@@ -1,0 +1,217 @@
+from abc import ABC, abstractmethod
+from typing import Any, List, Optional, Union, Dict
+
+
+class DataStream(ABC):
+    def __init__(self, stream_id: str) -> None:
+        self.id: str = stream_id
+        self.proc_count: int = 0
+
+    @abstractmethod
+    def process_batch(self, data_batch: List[Any]) -> str:
+        pass
+
+    def filter_data(self, data_batch: List[Any],
+                    criteria: Optional[str] = None) -> List[Any]:
+
+        if not isinstance(data_batch, List):
+            raise TypeError("Expected a list as input")
+
+        if criteria is None:
+            return data_batch
+
+        return [x for x in data_batch if criteria in x]
+
+    def get_stats(self) -> Dict[str, Union[str, int, float]]:
+        return {"processes": self.proc_count}
+
+
+class SensorStream(DataStream):
+    def __init__(self, stream_id: str) -> None:
+        super().__init__(stream_id)
+        self.type: str = "Environmental Data"
+        self.avg_temp: float = 0
+
+    def filter_data(self, data_batch: List[Any],
+                    criteria: Optional[str] = None) -> List[Any]:
+
+        if not isinstance(data_batch, List):
+            raise TypeError("Expected a list as input")
+
+        if criteria is None:
+            return data_batch
+
+        filtered: List[Any] = []
+
+        for p in data_batch:
+            try:
+                proc: List[str] = p.split(":")
+                if len(proc) != 2:
+                    raise ValueError(f"Expected format for list "
+                                     f"arg '<param1>:<param2>' got '{p}'")
+                if criteria == "high":
+                    if proc[0].strip() == "temp" and float(proc[1]) > 38:
+                        filtered.append(p)
+                elif criteria == "low":
+                    if proc[0].strip() == "temp" and float(proc[1]) <= 0:
+                        filtered.append(p.strip())
+            except (AttributeError, ValueError):
+                print(f"Error while filtering {p} - "
+                      f"Jumping to next process")
+        return filtered
+
+    def process_batch(self, data_batch: List[Any]) -> str:
+
+        valid_prefix: List[str] = ["temp", "humidity", "pressure"]
+
+        if not isinstance(data_batch, List):
+            raise TypeError("Expected a list of strings as input")
+
+        temps: List[float] = []
+
+        for p in data_batch:
+            try:
+                proc: List[str] = p.split(":")
+                if len(proc) != 2:
+                    raise ValueError("Expected format for list "
+                                     "arg '<param1>:<param2>'")
+
+                if proc[0].lower().strip() not in valid_prefix:
+                    raise ValueError(f"Valid values for <param1> of "
+                                     f"arg <param1>:<param2>"
+                                     f" are {valid_prefix}")
+                self.proc_count += 1
+                if proc[0].strip() == "temp":
+                    temps.append(float(proc[1]))
+
+            except (AttributeError, ValueError) as e:
+                print(f"Error while processing '{p}' - {e}")
+
+        temp_count: int = len(temps)
+        total_sum: float = sum(temps)
+        try:
+            self.avg_temp = total_sum / temp_count
+        except ZeroDivisionError:
+            print("Tried to divide by zero")
+
+        return (f"{self.proc_count} readings processed,"
+                f" avg temp: {self.avg_temp}°C")
+
+    def get_stats(self):
+        return {"id": self.id, "type": self.type,
+                "proc_count": self.proc_count,
+                "avg_temp": self.avg_temp
+                }
+
+
+class TransactionStream(DataStream):
+    def __init__(self, stream_id: str) -> None:
+        super().__init__(stream_id)
+        self.type: str = "Financial Data"
+        self.net_flow: float = 0
+
+    def filter_data(self, data_batch: List[Any],
+                    criteria: Optional[str] = None) -> List[Any]:
+
+        if not isinstance(data_batch, List):
+            raise TypeError("Expected a list as input")
+
+        if criteria is None:
+            return data_batch
+
+        filtered: List[Any] = []
+
+        for p in data_batch:
+            try:
+                proc: List[str] = p.split(":")
+                if len(proc) != 2:
+                    raise ValueError("Expected format for list "
+                                     "arg '<param1>:<param2>'")
+
+                if not (proc[0].strip() == "buy" or proc[0].strip() == "sell"):
+                    raise ValueError("Expected <param1> of arg <param1>"
+                                     ":<param2> to be <sell> or <buy>")
+
+                if criteria == "high":
+                    if float(proc[1]) > 100:
+                        filtered.append(p.strip())
+
+            except (AttributeError, ValueError) as e:
+                print(f"Error while filtering {p} - {e}")
+        return filtered
+
+    def process_batch(self, data_batch: List[Any]) -> str:
+
+        if not isinstance(data_batch, List):
+            raise TypeError("Expected a list as input")
+
+        transactions: List[float] = []
+
+        for p in data_batch:
+            try:
+                proc: List[str] = p.split(":")
+                if len(proc) != 2:
+                    raise ValueError("Expected format for list "
+                                     "arg '<param1>:<param2>'")
+
+                if not (proc[0].strip() == "buy" or proc[0].strip() == "sell"):
+                    raise ValueError("Expected <param1> of arg <param1>"
+                                     ":<param2> to be <sell> or <buy>")
+                self.proc_count += 1
+                if proc[0].strip() == "buy":
+                    transactions.append(float(proc[1]))
+                elif proc[0].strip() == "sell":
+                    transactions.append(-float(proc[1]))
+
+            except (AttributeError, ValueError) as e:
+                print(f"Error while filtering {p} - {e}")
+
+        self.net_flow = sum(transactions)
+        if self.net_flow.is_integer():
+            self.net_flow = int(self.net_flow)
+
+        return f"{self.proc_count} operations, net flow: {self.net_flow:+}"
+
+    def get_stats(self):
+        return {"id": self.id, "type": self.type,
+                "proc_count": self.proc_count,
+                "net_flow": self.net_flow
+                }
+
+
+def main() -> None:
+    print("=== CODE NEXUS - POLYMORPHIC STREAM SYSTEM ===\n")
+
+    print("Initializing Sensor Stream...")
+    sensor_001 = SensorStream("SENSOR_001")
+    data_stream: str = "temp:22.5, humidity:65, pressure:1013"
+    data_batch: List[Any] = data_stream.split(",")
+
+    print(f"Stream ID: {sensor_001.get_stats()['id']}, "
+          f"Type: {sensor_001.get_stats()['type']}")
+    print(f"Processing sensor batch: [{data_stream}]")
+
+    try:
+        result: str = sensor_001.process_batch(data_batch)
+        print(f"Sensor analysis: {result}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    print("\nInitializing Transaction Stream...")
+    trans_001 = TransactionStream("TRANS_001")
+    data_stream = "buy:100, sell:150, buy:75"
+    data_batch = data_stream.split(",")
+
+    print(f"Stream ID: {trans_001.get_stats()['id']}, "
+          f"Type: {trans_001.get_stats()['type']}")
+    print(f"Processing transaction batch: [{data_stream}]")
+
+    try:
+        result = trans_001.process_batch(data_batch)
+        print(f"Transaction analysis: {result}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
+if __name__ == "__main__":
+    main()
