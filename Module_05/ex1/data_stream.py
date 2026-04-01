@@ -7,6 +7,12 @@ class DataStream(ABC):
         self.id: str = stream_id
         self.proc_count: int = 0
 
+    def _to_list(self, data: Any) -> List[Any]:
+        if isinstance(data, List):
+            return data
+        raise TypeError(f"Expected a list as input, got "
+                        f"{data.__class__.__name__}")
+
     @abstractmethod
     def process_batch(self, data_batch: List[Any]) -> str:
         pass
@@ -14,8 +20,11 @@ class DataStream(ABC):
     def filter_data(self, data_batch: List[Any],
                     criteria: Optional[str] = None) -> List[Any]:
 
-        if not isinstance(data_batch, List):
-            raise TypeError("Expected a list as input")
+        try:
+            data_batch = self._to_list(data_batch)
+        except TypeError as e:
+            print(f"filter_data error: {e}")
+            return []
 
         if criteria is None:
             return data_batch
@@ -35,8 +44,11 @@ class SensorStream(DataStream):
     def filter_data(self, data_batch: List[Any],
                     criteria: Optional[str] = None) -> List[Any]:
 
-        if not isinstance(data_batch, List):
-            raise TypeError("Expected a list as input")
+        try:
+            data_batch = self._to_list(data_batch)
+        except TypeError as e:
+            print(f"filter_data error: {e}")
+            return []
 
         if criteria is None:
             return data_batch
@@ -55,17 +67,25 @@ class SensorStream(DataStream):
                 elif criteria == "low":
                     if proc[0].strip() == "temp" and float(proc[1]) <= 0:
                         filtered.append(p.strip())
-            except (AttributeError, ValueError):
-                print(f"Error while filtering {p} - "
-                      f"Jumping to next process")
+
+            except AttributeError:
+                print(f"Error while filtering {p} - expected a str got "
+                      f"{p.__class__.__name__}")
+
+            except ValueError as e:
+                print(f"Error while filtering {p} - {e}")
+
         return filtered
 
     def process_batch(self, data_batch: List[Any]) -> str:
 
         valid_prefix: List[str] = ["temp", "humidity", "pressure"]
 
-        if not isinstance(data_batch, List):
-            raise TypeError("Expected a list of strings as input")
+        try:
+            data_batch = self._to_list(data_batch)
+        except TypeError as e:
+            print(f"process_batch error: {e}")
+            return ""
 
         temps: List[float] = []
 
@@ -76,7 +96,7 @@ class SensorStream(DataStream):
                     raise ValueError("Expected format for list "
                                      "arg '<param1>:<param2>'")
 
-                if proc[0].lower().strip() not in valid_prefix:
+                if proc[0].strip() not in valid_prefix:
                     raise ValueError(f"Valid values for <param1> of "
                                      f"arg <param1>:<param2>"
                                      f" are {valid_prefix}")
@@ -84,7 +104,11 @@ class SensorStream(DataStream):
                 if proc[0].strip() == "temp":
                     temps.append(float(proc[1]))
 
-            except (AttributeError, ValueError) as e:
+            except AttributeError:
+                print(f"Error while filtering {p} - expected a str got "
+                      f"{p.__class__.__name__}")
+
+            except ValueError as e:
                 print(f"Error while processing '{p}' - {e}")
 
         temp_count: int = len(temps)
@@ -113,8 +137,11 @@ class TransactionStream(DataStream):
     def filter_data(self, data_batch: List[Any],
                     criteria: Optional[str] = None) -> List[Any]:
 
-        if not isinstance(data_batch, List):
-            raise TypeError("Expected a list as input")
+        try:
+            data_batch = self._to_list(data_batch)
+        except TypeError as e:
+            print(f"filter_data error: {e}")
+            return []
 
         if criteria is None:
             return data_batch
@@ -136,14 +163,21 @@ class TransactionStream(DataStream):
                     if float(proc[1]) > 100:
                         filtered.append(p.strip())
 
-            except (AttributeError, ValueError) as e:
+            except AttributeError:
+                print(f"Error while filtering {p} - expected a str got "
+                      f"{p.__class__.__name__}")
+
+            except ValueError as e:
                 print(f"Error while filtering {p} - {e}")
         return filtered
 
     def process_batch(self, data_batch: List[Any]) -> str:
 
-        if not isinstance(data_batch, List):
-            raise TypeError("Expected a list as input")
+        try:
+            data_batch = self._to_list(data_batch)
+        except TypeError as e:
+            print(f"process_batch error: {e}")
+            return ""
 
         transactions: List[float] = []
 
@@ -157,18 +191,23 @@ class TransactionStream(DataStream):
                 if not (proc[0].strip() == "buy" or proc[0].strip() == "sell"):
                     raise ValueError("Expected <param1> of arg <param1>"
                                      ":<param2> to be <sell> or <buy>")
-                self.proc_count += 1
+
                 if proc[0].strip() == "buy":
                     transactions.append(float(proc[1]))
                 elif proc[0].strip() == "sell":
                     transactions.append(-float(proc[1]))
 
-            except (AttributeError, ValueError) as e:
-                print(f"Error while filtering {p} - {e}")
+                self.proc_count += 1
+                self.net_flow = sum(transactions)
+                if self.net_flow.is_integer():
+                    self.net_flow = int(self.net_flow)
 
-        self.net_flow = sum(transactions)
-        if self.net_flow.is_integer():
-            self.net_flow = int(self.net_flow)
+            except AttributeError:
+                print(f"Error while processing {p} - expected a str got "
+                      f"{p.__class__.__name__}")
+
+            except ValueError as e:
+                print(f"Error while processing {p} - {e}")
 
         return f"{self.proc_count} operations, net flow: {self.net_flow:+}"
 
@@ -191,11 +230,9 @@ def main() -> None:
           f"Type: {sensor_001.get_stats()['type']}")
     print(f"Processing sensor batch: [{data_stream}]")
 
-    try:
-        result: str = sensor_001.process_batch(data_batch)
+    result: str = sensor_001.process_batch(["temp:to", "temp:100"])
+    if result:
         print(f"Sensor analysis: {result}")
-    except Exception as e:
-        print(f"Error: {e}")
 
     print("\nInitializing Transaction Stream...")
     trans_001 = TransactionStream("TRANS_001")
@@ -206,11 +243,9 @@ def main() -> None:
           f"Type: {trans_001.get_stats()['type']}")
     print(f"Processing transaction batch: [{data_stream}]")
 
-    try:
-        result = trans_001.process_batch(data_batch)
+    result = trans_001.process_batch(["buy:sell"])
+    if result:
         print(f"Transaction analysis: {result}")
-    except Exception as e:
-        print(f"Error: {e}")
 
 
 if __name__ == "__main__":
