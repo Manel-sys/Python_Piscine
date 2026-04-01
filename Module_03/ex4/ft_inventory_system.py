@@ -59,6 +59,7 @@ def main() -> None:
         inv: dict[str, int] = parse_args()
     except ValueError as e:
         print(e)
+        return
     print(f"Got inventory: {inv}")
     print(f"Item list: {list(inv.keys())}")
     tot_quantity: int = sum(inv.values())
