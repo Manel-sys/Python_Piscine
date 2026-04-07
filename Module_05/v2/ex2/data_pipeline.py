@@ -16,15 +16,8 @@ class CSVExportPlugin:
 
 class JSONExportPlugin:
     def process_output(self, data: list[tuple[int, str]]) -> None:
-        json_output: str = "{"
-        for i, s in data:
-            key: str = '"item_' + str(i) + '"'
-            json_output += key + ":" + ' "' + s
-            if s is not data[-1][1]:
-                json_output += '", '
-            else:
-                json_output += '"'
-        json_output += "}"
+        entries: list[str] = [f'"item_{i}": "{s}"' for i, s in data]
+        json_output: str = "{" + ", ".join(entries) + "}"
         print("JSON Output:")
         print(json_output)
 
@@ -182,11 +175,12 @@ class DataStream:
                 limit = len(proc.data)
             for i in range(0, limit):
                 outputs.append(proc.output())
-            plugin.process_output(outputs)
+            if outputs:
+                plugin.process_output(outputs)
 
 
 def main() -> None:
-    print("=== Code Nexus - Data Stream ===\n")
+    print("=== Code Nexus - Data Pipeline ===\n")
 
     print("Initialize Data Stream...")
     data_stream: DataStream = DataStream()
