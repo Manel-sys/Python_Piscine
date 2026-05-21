@@ -83,39 +83,32 @@ def main() -> None:
     print("=" * 40)
 
     try:
-        member_1: CrewMember = CrewMember(
-            member_id="001", name="Sarah Connor",
-            rank=Rank.COMMANDER,
-            age=33, specialization="Mission Command",
-            years_experience=5,
-        )
-
-        member_2: CrewMember = CrewMember(
-            member_id="002", name="John Smith",
-            rank=Rank.LIEUTENANT,
-            age=28, specialization="Navigation",
-            years_experience=4,
-        )
-
-        member_3: CrewMember = CrewMember(
-            member_id="003", name="Alice Johnson",
-            rank=Rank.OFFICER,
-            age=45, specialization="Engineering",
-            years_experience=7,
-        )
-
-        crew_1: list[CrewMember] = [member_1,
-                                    member_2,
-                                    member_3,
-                                    ]
-
         valid_mission: SpaceMission = SpaceMission(
             mission_id="M2024_MARS",
             mission_name="Mars Colony Establishment",
             destination="Mars",
             launch_date=datetime(2030, 7, 12),
             duration_days=900,
-            crew=crew_1,
+            crew=[
+                CrewMember(
+                            member_id="001", name="Sarah Connor",
+                            rank=Rank.COMMANDER,
+                            age=33, specialization="Mission Command",
+                            years_experience=5,
+                        ),
+                CrewMember(
+                            member_id="002", name="John Smith",
+                            rank=Rank.LIEUTENANT,
+                            age=28, specialization="Navigation",
+                            years_experience=4,
+                        ),
+                CrewMember(
+                            member_id="003", name="Alice Johnson",
+                            rank=Rank.OFFICER,
+                            age=45, specialization="Engineering",
+                            years_experience=7,
+                        ),
+                ],
             budget_millions=2500.0
         )
 
@@ -123,9 +116,6 @@ def main() -> None:
         print()
 
         print("=" * 40)
-        crew_2: list[CrewMember] = [member_2,
-                                    member_3
-                                    ]
 
         invalid_mission: SpaceMission = SpaceMission(
             mission_id="M2024_MARS",
@@ -133,7 +123,20 @@ def main() -> None:
             destination="Mars",
             launch_date=datetime(2030, 7, 12),
             duration_days=900,
-            crew=crew_2,
+            crew=[
+                CrewMember(
+                            member_id="002", name="John Smith",
+                            rank=Rank.LIEUTENANT,
+                            age=28, specialization="Navigation",
+                            years_experience=4,
+                        ),
+                CrewMember(
+                            member_id="003", name="Alice Johnson",
+                            rank=Rank.OFFICER,
+                            age=45, specialization="Engineering",
+                            years_experience=7,
+                        ),
+            ],
             budget_millions=2500.0
         )
 
