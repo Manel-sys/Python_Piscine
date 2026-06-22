@@ -27,9 +27,20 @@ def mage_stats(mages: list[dict]) -> dict:
 
 def main() -> None:
 
-    artifacts: list[dict] = []
-    mages: list[dict] = []
-    spells: list[str] = []
+    artifacts: list[dict] = [
+        {'name': 'Earth Shield', 'power': 71, 'type': 'weapon'},
+        {'name': 'Water Chalice', 'power': 79, 'type': 'relic'},
+        {'name': 'Wind Cloak', 'power': 100, 'type': 'armor'},
+        {'name': 'Light Prism', 'power': 114, 'type': 'relic'},
+        ]
+    mages: list[dict] = [
+        {'name': 'Nova', 'power': 66, 'element': 'fire'},
+        {'name': 'Zara', 'power': 50, 'element': 'wind'},
+        {'name': 'Storm', 'power': 93, 'element': 'ice'},
+        {'name': 'Casey', 'power': 42, 'element': 'fire'},
+        {'name': 'Kai', 'power': 79, 'element': 'ice'}
+        ]
+    spells: list[str] = ['shield', 'freeze', 'tornado', 'blizzard']
 
     try:
         print("Testing artifact sorter...")
@@ -51,7 +62,7 @@ def main() -> None:
         print(spell_transformer(spells))
         print("\nTesting mage stats computation...")
         print(mage_stats(mages))
-    except (KeyError, ValueError, ZeroDivisionError) as e:
+    except (KeyError, ValueError, ZeroDivisionError, TypeError) as e:
         print(f"Error: {e}\nCheck the structure of the data being used:"
               "\n(1) artifacts should be a list of dict: {'name': str, "
               "'power': int, 'type': str}"
