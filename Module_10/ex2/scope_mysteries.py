@@ -64,15 +64,15 @@ def main() -> None:
     print("\nTesting enchantment factory...")
     fire_factory = enchantment_factory("Flaming")
     ice_factory = enchantment_factory("Frozen")
-    print(f"{fire_factory("Sword")}")
-    print(f"{ice_factory("Shield")}")
+    print(f"{fire_factory('Sword')}")
+    print(f"{ice_factory('Shield')}")
 
     print("\nTesting memory vault...")
     vault = memory_vault()
     print("Store 'secret' = 42")
     vault["store"]("secret", 42)
-    print(f"Recall 'secret': {vault["recall"]("secret")}")
-    print(f"Recall 'unknown': {vault["recall"]("unknown")}")
+    print(f"Recall 'secret': {vault['recall']('secret')}")
+    print(f"Recall 'unknown': {vault['recall']('unknown')}")
 
 
 if __name__ == "__main__":

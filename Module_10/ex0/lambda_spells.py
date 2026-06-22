@@ -37,8 +37,8 @@ def main() -> None:
         sorted_artifacts: list[dict] = artifact_sorter(artifacts)
         sorted_string: str = ""
         for i in range(len(sorted_artifacts)):
-            sorted_string += (f"{sorted_artifacts[i]["name"]} "
-                              f"({sorted_artifacts[i]["power"]} power)")
+            sorted_string += (f"{sorted_artifacts[i]['name']} "
+                              f"({sorted_artifacts[i]['power']} power)")
             if i == 0:
                 sorted_string += " comes before "
             elif i > 0 and i < len(sorted_artifacts) - 1:

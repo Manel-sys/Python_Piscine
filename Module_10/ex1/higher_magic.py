@@ -29,7 +29,7 @@ def spell_combiner(spell1: Spell, spell2: Spell) -> Callable[[str, int],
 
 def power_amplifier(base_spell: Spell, multiplier: int) -> Spell:
     if not callable(base_spell):
-        raise TypeError("base_spell musst be a spell")
+        raise TypeError("base_spell must be a spell")
 
     def amplified(target: str, power: int) -> str:
         return (base_spell(target, power * multiplier))
@@ -69,14 +69,14 @@ def main() -> None:
         print("\nTesting spell combiner...")
         combined_spell = spell_combiner(fireball, shield)
         result = combined_spell(test_targets[0], test_values[0])
-        print(f"Combined spell result: {result[0].split(sep="for")[0]},"
-              f" {result[1].split(sep="for")[0]}")
+        print(f"Combined spell result: {result[0].split(sep='for')[0]},"
+              f" {result[1].split(sep='for')[0]}")
 
         print("\nTesting power amplifier...")
         amplified_spell = power_amplifier(shield, 2)
         result_amplified = amplified_spell(test_targets[1], test_values[1])
         print(f"Original: {test_values[1]}, "
-              f"Amplified: {"".join(filter(str.isdigit, result_amplified))}")
+              f"Amplified: {''.join(filter(str.isdigit, result_amplified))}")
 
         print("\nTesting conditional caster...")
         conditional_spell = conditional_caster(lambda power: power > 20, heal)
